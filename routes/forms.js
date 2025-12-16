@@ -13,8 +13,13 @@ router.post('/', auth, [
     body('fields').isArray().withMessage('Fields must be an array')
 ], async (req, res) => {
     try {
+        console.log('📝 Create form request received');
+        console.log('User ID:', req.userId);
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
+            console.log('❌ Validation errors:', errors.array());
             return res.status(400).json({
                 success: false,
                 errors: errors.array()
@@ -25,6 +30,7 @@ router.post('/', auth, [
 
         // Generate unique URL
         const uniqueUrl = nanoid(10);
+        console.log('Generated unique URL:', uniqueUrl);
 
         const form = new Form({
             title,
@@ -33,17 +39,21 @@ router.post('/', auth, [
             uniqueUrl
         });
 
+        console.log('Attempting to save form...');
         await form.save();
+        console.log('✅ Form saved successfully!');
 
         res.status(201).json({
             success: true,
             form
         });
     } catch (error) {
-        console.error('Create form error:', error);
+        console.error('❌ Create form error:', error);
+        console.error('Error stack:', error.stack);
         res.status(500).json({
             success: false,
-            message: 'Server error while creating form'
+            message: 'Server error while creating form',
+            error: error.message
         });
     }
 });
